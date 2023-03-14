@@ -1,16 +1,11 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: COLIN
-  Date: 2023/3/13
-  Time: 20:14
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=utf-8"%>
 <html>
-  <head>
-    <title>$Title$</title>
-  </head>
-  <body>
-  $END$
-  </body>
+<head>
+</head>
+<script type="text/javascript">
+    /*window.location.href = "${pageContext.request.contextPath}/login?operation=login";*/
+    window.location.href = "${pageContext.request.contextPath}/login.jsp";
+</script>
+<body>
+</body>
 </html>
