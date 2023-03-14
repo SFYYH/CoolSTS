@@ -587,7 +587,7 @@ public class MapperFactory {
 
 ```
 
-##### com.colincora.utils 
+##### com.colincora.utils.TransactionUtil.java
 
 > ##### 用于数据提交、回滚、单独释放
 
@@ -920,5 +920,641 @@ public class CompanyServiceTest {
         companyService=null;
     }
 }
+```
+
+
+
+## 企业模块制作-表现层
+
+> 表现出需要实现的七个功能
+>
+> 1.列表功能
+>
+> 2.跳转添加页
+>
+> 3.新增功能
+>
+> 4.跳转修改页
+>
+> 5.修改功能
+>
+> 6.分页功能
+>
+> 7.删除功能
+
+#### 企业管理页面的补充完整
+
+##### src/main/webapp/WEB-INF/pages/store/Company/list.jsp
+
+```java
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ include file="../../base.jsp"%>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>CoolSTS管理系统</title>
+    <meta name="description" content="AdminLTE2定制版">
+    <meta name="keywords" content="AdminLTE2定制版">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 页面meta /-->
+    <script src="${ctx}/plugins/jQuery/jquery-2.2.3.min.js"></script>
+</head>
+<script>
+    function deleteById() {
+        var id = getCheckId()
+        if(id) {
+            if(confirm("你确认要删除此条记录吗？")) {
+                location.href="${ctx}/store/company?operation=delete&id="+id;
+            }
+        }else{
+            alert("请勾选待处理的记录，且每次只能勾选一个")
+        }
+    }
+</script>
+<body>
+<div id="frameContent" class="content-wrapper" style="margin-left:0px;">
+<section class="content-header">
+    <h1>
+        企业管理
+        <small>企业列表</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="all-admin-index.html"><i class="fa fa-dashboard"></i> 首页</a></li>
+    </ol>
+</section>
+<!-- 内容头部 /-->
+
+<!-- 正文区域 -->
+<section class="content">
+
+    <!-- .box-body -->
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">列表</h3>
+        </div>
+
+        <div class="box-body">
+
+            <!-- 数据表格 -->
+            <div class="table-box">
+
+                <!--工具栏-->
+                <div class="pull-left">
+                    <div class="form-group form-inline">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default" title="新建" onclick='location.href="${ctx}/store/company?operation=toAdd"'><i class="fa fa-file-o"></i> 新建</button>
+                            <button type="button" class="btn btn-default" title="删除" onclick='deleteById()'><i class="fa fa-trash-o"></i> 删除</button>
+                            <button type="button" class="btn btn-default" title="刷新" onclick="window.location.reload();"><i class="fa fa-refresh"></i> 刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-tools pull-right">
+                    <div class="has-feedback">
+                        <input type="text" class="form-control input-sm" placeholder="搜索">
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </div>
+                </div>
+                <!--工具栏/-->
+
+                <!--数据列表-->
+                <table id="dataList" class="table table-bordered table-striped table-hover dataTable">
+                    <thead>
+                    <tr>
+                        <th class="" style="padding-right:0px;">
+
+                        </th>
+                        <th class="sorting">企业名称</th>
+                        <th class="sorting">所在地</th>
+                        <th class="sorting">地址</th>
+                        <th class="sorting">企业法人</th>
+                        <th class="sorting">联系方式</th>
+                        <th class="sorting">所属行业</th>
+                        <th class="sorting">状态</th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${page.list}" var="item">
+                    <tr>
+                        <td><input name="ids" value="${item.id}" type="checkbox"></td>
+                        <td>
+                            ${item.name}
+                        </td>
+                        <td>${item.city}</td>
+                        <td>${item.address}</td>
+                        <td>${item.representative}</td>
+                        <td>${item.phone}</td>
+                        <td>${item.industry}</td>
+                        <td>${item.state ==0?'未审核':'已审核'}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn bg-olive btn-xs" onclick='location.href="${ctx}/store/company?operation=toEdit&id=${item.id}"'>编辑</button>
+                        </td>
+                    </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+
+         <!-- .box-footer-->
+        <%--  <form action="${ctx}/company/list.do" method="post">
+         <div class="box-footer">
+             <div class="pull-left">
+                 <div class="form-group form-inline">
+                     总共${page.totalPage} 页，共${page.total}条数据。 每页
+                     <select class="form-control">
+                         <option ${page.size==5?'selected':''}>5</option>
+                         <option ${page.size==10?'selected':''}>10</option>
+                         <option ${page.size==15?'selected':''}>25</option>
+                         <option ${page.size==20?'selected':''}>20</option>
+                     </select> 条
+                </div>
+            </div>
+
+            <div class="box-tools pull-right">
+                <ul class="pagination">
+                    <li>
+                        <a href="javascript:toPage('1')" aria-label="Previous">首页</a>
+                    </li>
+                    <li><a href="javascript:toPage('${page.pre}')">上一页</a></li>
+                    <c:forEach begin="${page.beg}" end="${page.end}" var="index">
+                        <li><a href="javascript:toPage('${index}')">${index}</a></li>
+                    </c:forEach>
+                    <li><a href="javascript:toPage('${page.next}')">下一页</a></li>
+                    <li>
+                        <a href="javascript:toPage('${page.totalPage}')" aria-label="Next">尾页</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <script type="text/javascript">
+            function toPage(pageNum){
+                document.getElementById("page").value = pageNum;
+                document.forms[0].submit();
+            }
+        </script>
+        <input type="hidden" name="page" id="page" value="">
+        </form>--%>
+
+         <div class="box-footer">
+             <jsp:include page="../../common/page.jsp">
+                 <jsp:param value="${ctx}/store/company?operation=list" name="pageUrl"/>
+             </jsp:include>
+         </div>
+        <!-- /.box-footer-->
+
+    </div>
+</section>
+</div>
+</body>
+
+</html>
+```
+
+##### src/main/webapp/WEB-INF/pages/common/page.jsp
+
+```java
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<html>
+<body>
+<%--<div class="pull-left">
+    <div class="form-group form-inline">
+        总共${page.totalPage} 页，共${page.total} 条数据。
+    </div>
+</div>
+
+<div class="box-tools pull-right">
+    <ul class="pagination" style="margin: 0px;">
+        <li >
+            <a href="javascript:goPage(1)" aria-label="Previous">首页</a>
+        </li>
+        <li><a href="javascript:goPage(${page.pre})">上一页</a></li>
+        <c:forEach begin="${page.beg}" end="${page.end}" var="i">
+            <li class="paginate_button ${page.page==i ? 'active':''}"><a href="javascript:goPage(${i})">${i}</a></li>
+        </c:forEach>
+        <li><a href="javascript:goPage(${page.next})">下一页</a></li>
+        <li>
+            <a href="javascript:goPage(${page.totalPage})" aria-label="Next">尾页</a>
+        </li>
+    </ul>
+</div>
+<form id="pageForm" action="${param.pageUrl}" method="post">
+    <input type="hidden" name="page" id="pageNum">
+</form>
+<script>
+    function goPage(page) {
+        document.getElementById("pageNum").value = page
+        document.getElementById("pageForm").submit()
+    }
+</script>
+</body>--%>
+
+
+<body>
+<div class="pull-left">
+    <div class="form-group form-inline">
+        总共${page.pages} 页，共${page.total} 条数据。
+    </div>
+</div>
+
+<div class="box-tools pull-right">
+    <ul class="pagination" style="margin: 0px;">
+        <li >
+            <a href="javascript:goPage(1)" aria-label="Previous">首页</a>
+        </li>
+        <li><a href="javascript:goPage(${page.prePage})">上一页</a></li>
+        <c:forEach begin="${page.navigateFirstPage}" end="${page.navigateLastPage}" var="i">
+            <li class="paginate_button ${page.pageNum==i ? 'active':''}"><a href="javascript:goPage(${i})">${i}</a></li>
+        </c:forEach>
+        <li><a href="javascript:goPage(${page.nextPage})">下一页</a></li>
+        <li>
+            <a href="javascript:goPage(${page.pages})" aria-label="Next">尾页</a>
+        </li>
+    </ul>
+</div>
+<form id="pageForm" action="${param.pageUrl}" method="post">
+    <input type="hidden" name="page" id="pageNum">
+</form>
+<script>
+    function goPage(page) {
+        document.getElementById("pageNum").value = page
+        document.getElementById("pageForm").submit()
+    }
+</script>
+</body>
+</html>
+```
+
+> 在home里的侧边菜单位置要记得更改和对应文件位置
+
+#### 表现层Servlet代码实现
+
+##### com/colincora/web/controller/company/CompanyServlet.java
+
+```java
+package com.colincora.web.controller.company;
+
+import com.colincora.domain.store.Company;
+import com.colincora.service.store.CompanyService;
+import com.colincora.service.store.impl.CompanyServiceImpl;
+import com.colincora.utils.BeanUtil;
+import com.github.pagehelper.PageInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+/**
+ * @author colincora
+ * @date 2023/3/14 21:32
+ */
+
+/**
+ * doGet doPost方法覆盖
+ * 一个servlet只能完成一种功能的请求 如果像完成多个 需要加标志
+ * uri:/store/company?operation=list
+ */
+
+@WebServlet("/store/company") //访问路径
+public class CompanyServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+//        System.out.println("run.....");
+        String operation = request.getParameter("operation");
+        //常量写前面变量写后面，有时候变量是空的
+        if("list".equals(operation)){
+            this.list(request,response);
+        }else if("toAdd".equals(operation)){
+            this.toAdd(request,response);
+        }else if("save".equals(operation)){
+            this.save(request,response);
+        }else if("list".equals(operation)){
+
+        }else if("list".equals(operation)){
+
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        this.doGet(request,response);
+    }
+    private void list(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
+        //进入列表页面
+        //1.获取数据
+        CompanyService companyService=new CompanyServiceImpl();
+        //判断页面是否传值 默认page=1，size=5
+        int page=1;
+        int size=5;
+        //StringUtils.isNoneBlank()判断如果你输值了 即点分页进来的
+        if(StringUtils.isNoneBlank(request.getParameter("page"))){
+//            System.out.println("你获取到了page的数值"+request.getParameter("page"));
+            page=Integer.parseInt(request.getParameter("page"));
+            System.out.println(page);
+        }
+        if(StringUtils.isNoneBlank(request.getParameter("size"))){
+            size=Integer.parseInt(request.getParameter("size"));
+        }
+        PageInfo all = companyService.findAll(page,size);
+        //2.将数据保存到指定位置
+        request.setAttribute("page",all);
+        //3跳转页面
+        request.getRequestDispatcher("/WEB-INF/pages/store/Company/list.jsp").forward(request,response);
+        System.out.println("这里是跳转list页面哦~【src/main/webapp/WEB-INF/pages/store/Company/list.jsp】");
+    }
+    private void toAdd(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("/WEB-INF/pages/store/Company/add.jsp").forward(request,response);
+        System.out.println("这里是添加数据页面哦~【src/main/webapp/WEB-INF/pages/store/Company/add.jsp】");
+    }
+    private void save(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
+        //将数据获取到，封装成一个对象
+        Company company= BeanUtil.fillBean(request,Company.class,"yyy-MM-dd");
+        //调用业务层接口save
+        CompanyService companyService=new CompanyServiceImpl();
+        companyService.save(company);
+        //跳转回到列表页面
+        //list(request,response);
+        response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
+    }
+}
+
+```
+
+> 关于pages页面：我们需要把`src/main/webapp/pages`里的`common`和`store`文件夹复制到WEB-INF，为了安全起见
+>
+> 在进行`private void save`编写的时候要注意导入BeanUtil类获取封装对象
+>
+> #### src/main/java/com/colincora/utils/BeanUtil.java
+>
+> ```java
+> package com.colincora.utils;
+> 
+> import javax.servlet.http.HttpServletRequest;
+> 
+> import org.apache.commons.beanutils.BeanUtils;
+> import org.apache.commons.beanutils.ConvertUtils;
+> import org.apache.commons.beanutils.converters.DateConverter;
+> import org.apache.commons.fileupload.FileItem;
+> import org.apache.commons.fileupload.servlet.ServletFileUpload;
+> 
+> import java.beans.PropertyDescriptor;
+> import java.io.File;
+> import java.lang.reflect.Method;
+> import java.util.Date;
+> import java.util.List;
+> 
+> /**
+>  * 填充表单数据到javabean的工具类
+>  * @author zhy
+>  *
+>  */
+> public class BeanUtil {
+> 	/**
+> 	 * 封装表单中的数据到javabean中
+> 	 * @param request	表单中的数据
+> 	 * @param clazz		封装到哪个javabean
+> 	 * @return	封装好的javabean对象
+> 	 * 使用的是泛型。泛型必须先声明再使用。声明必须在返回值之前
+> 	 * T指的就是泛型，它可以是任意字符，只是作为一个占位符。
+> 	 * 声明时用什么字符，使用时就得用什么
+> 	 */
+> 	public static <T> T fillBean(HttpServletRequest request,Class<T> clazz){
+> 		//1.定义一个T类型的javabean
+> 		T bean = null;
+> 		try{
+> 			//2.实例化bean对象
+> 			bean = clazz.newInstance();
+> 			//3.使用BeanUtils的方法进行封装
+> 			BeanUtils.populate(bean, request.getParameterMap());
+> 			//4.返回
+> 			return bean;
+> 		}catch(Exception e){
+> 			throw new RuntimeException(e);
+> 		}
+> 	}
+> 
+> 
+> 
+> 	/**
+> 	 * 封装表单中的数据到javabean中,带有日期格式数据
+> 	 * @param request	表单中的数据
+> 	 * @param clazz		封装到哪个javabean
+> 	 * @return	封装好的javabean对象
+> 	 * 使用的是泛型。泛型必须先声明再使用。声明必须在返回值之前
+> 	 * T指的就是泛型，它可以是任意字符，只是作为一个占位符。
+> 	 * 声明时用什么字符，使用时就得用什么
+> 	 */
+> 	public static <T> T fillBean(HttpServletRequest request,Class<T> clazz,String datePattern){
+> 		//1.定义一个T类型的javabean
+> 		T bean = null;
+> 		try{
+> 			//2.实例化bean对象
+> 			bean = clazz.newInstance();
+> 			//3.创建日期转换器对象
+> 			DateConverter converter = new DateConverter();
+> 			converter.setPattern(datePattern);
+> 			//4.设置转换器
+> 			ConvertUtils.register(converter, Date .class);
+> 			//5.使用BeanUtils的方法进行封装
+> 			BeanUtils.populate(bean, request.getParameterMap());
+> 			//6.返回
+> 			return bean;
+> 		}catch(Exception e){
+> 			throw new RuntimeException(e);
+> 		}
+> 	}
+> 
+> 	/**
+> 	 * 文件上传的表单填充
+> 	 * @param items	文件上传的表单项
+> 	 * @param clazz	要封装的实体类字节码
+> 	 * @param <T>	泛型
+> 	 * @return		返回封装好的对象
+> 	 */
+> 	public static <T> T fillBean(List<FileItem> items,Class<T> clazz){
+> 		//1.定义一个T类型的javabean
+> 		T bean = null;
+> 		try{
+> 			//2.实例化Bean
+> 			bean = clazz.newInstance();
+> 			//3.遍历文件项集合
+> 			for(FileItem item : items){
+> 				//4.判断是不是文件
+> 				if(item.isFormField()){//表单字段，不是文件
+> 					//5.取出表单中的name属性取值
+> 					String fieldName = item.getFieldName();
+> 					//6.使用UTF-8字符集取出表单数据
+> 					String fieldValue = item.getString("UTF-8");
+> 					//7.创建属性描述器对象
+> 					PropertyDescriptor pd = new PropertyDescriptor(fieldName,clazz);
+> 					//8.获取写方法(setXXX方法）
+> 					Method method = pd.getWriteMethod();
+> 					//9.把数据填充到bean中
+> 					method.invoke(bean,fieldValue);
+> 				}
+> 			}
+> 			//10.返回
+> 			return bean;
+> 		}catch(Exception e){
+> 			throw new RuntimeException(e);
+> 		}
+> 	}
+> }
+> ```
+
+##### src/main/webapp/WEB-INF/pages/store/Company/add.jsp
+
+> 添加功能的实现
+
+```java
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ include file="../../base.jsp"%>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>CoolSTS管理系统</title>
+    <meta name="description" content="AdminLTE2定制版">
+    <meta name="keywords" content="AdminLTE2定制版">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 页面meta /-->
+</head>
+<body>
+<div id="frameContent">
+    <!-- 内容头部 -->
+    <section class="content-header" class="content-wrapper" style="margin-left:0px;">
+        <h1>
+            企业管理
+            <small>企业表单</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="all-admin-index.html"><i class="fa fa-dashboard"></i> 首页</a></li>
+            <li><a href="all-order-manage-list.html">企业管理</a></li>
+            <li class="active">企业表单</li>
+        </ol>
+    </section>
+    <!-- 内容头部 /-->
+
+    <!-- 正文区域 -->
+    <section class="content">
+
+        <!--添加内容信息-->
+        <div class="panel panel-default">
+            <div class="panel-heading">企业信息</div>
+            <form id="editForm" action="${ctx}/store/company?operation=save" method="post">
+                <input type="hidden" name="id" value="${company.id}">
+                <div class="row data-type" style="margin: 0px">
+                    <div class="col-md-2 title">企业名称</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="企业名称" name="name" value="${company.name}">
+                    </div>
+
+                    <div class="col-md-2 title">营业执照</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="营业执照" name="licenseId" value="${company.licenseId}">
+                    </div>
+
+                    <div class="col-md-2 title">所在城市</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="所在地" name="city" value="${company.city}">
+                    </div>
+
+                    <div class="col-md-2 title">企业地址</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="企业地址" name="address" value="${company.address}">
+                    </div>
+
+                    <div class="col-md-2 title">法人代表</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="法人代表" name="representative" value="${company.representative}">
+                    </div>
+
+                    <div class="col-md-2 title">联系电话</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="联系电话" name="phone" value="${company.phone}">
+                    </div>
+
+                    <div class="col-md-2 title">公司规模</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="公司规模" name="companySize" value="${company.companySize}">
+                    </div>
+
+                    <div class="col-md-2 title">所属行业</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="所属行业" name="industry" value="${company.industry}">
+                    </div>
+                    <div class="col-md-2 title">状态</div>
+                    <div class="col-md-4 data">
+                        <select class="form-control select2" name="state" style="width: 100%;">
+                            <option value="0" ${company.state==0 ? 'selected':''}>未审核</option>
+                            <option value="1" ${company.state==1 ? 'selected':''}>已审核</option>
+                        </select>
+                        <input type="text" class="form-control" placeholder="状态" name="state" value="${company.state}">
+                    </div>
+
+
+                    <div class="col-md-2 title">到期时间</div>
+                    <div class="col-md-4 data">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" placeholder="到期时间"  name="expirationDate" class="form-control pull-right"
+                                   value="<fmt:formatDate value="${company.expirationDate}" pattern="yyyy-MM-dd"/>" id="expirationDate">
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 title rowHeight2x">备注</div>
+                    <div class="col-md-10 data rowHeight2x">
+                        <textarea class="form-control" rows="3" name="remarks">${company.remarks}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--添加内容信息/-->
+
+        <!--工具栏-->
+        <div class="box-tools text-center">
+            <button type="button" onclick='document.getElementById("editForm").submit()' class="btn bg-maroon">保存</button>
+            <button type="button" class="btn bg-default" onclick="history.back(-1);">返回</button>
+        </div>
+        <!--工具栏/-->
+
+    </section>
+    <!-- 正文区域 /-->
+
+</div>
+<!-- 内容区域 /-->
+</body>
+<script src="${ctx}/plugins/datepicker/bootstrap-datepicker.js"></script>
+<script src="${ctx}/plugins/datepicker/locales/bootstrap-datepicker.zh-CN.js"></script>
+<link rel="stylesheet" href="${ctx}/css/style.css">
+<script>
+    $('#expirationDate').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+    });
+</script>
+
+</html>
 ```
 
