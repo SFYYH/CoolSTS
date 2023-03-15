@@ -4,6 +4,7 @@ import com.colincora.domain.store.Company;
 import com.colincora.service.store.CompanyService;
 import com.colincora.service.store.impl.CompanyServiceImpl;
 import com.colincora.utils.BeanUtil;
+import com.colincora.web.controller.BaseServlet;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Base64;
 
 /**
  * @author colincora
@@ -27,7 +29,7 @@ import java.io.IOException;
  */
 
 @WebServlet("/store/company") //访问路径
-public class CompanyServlet extends HttpServlet {
+public class CompanyServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //        System.out.println("run.....");
@@ -39,12 +41,15 @@ public class CompanyServlet extends HttpServlet {
             this.toAdd(request,response);
         }else if("save".equals(operation)){
             this.save(request,response);
-        }else if("list".equals(operation)){
-
-        }else if("list".equals(operation)){
-
+        }else if("toEdit".equals(operation)){
+            this.toEdit(request,response);
+        }else if("edit".equals(operation)){
+            this.edit(request,response);
+        }else if("delete".equals(operation)){
+            this.delete(request,response);
         }
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -53,7 +58,7 @@ public class CompanyServlet extends HttpServlet {
     private void list(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
         //进入列表页面
         //1.获取数据
-        CompanyService companyService=new CompanyServiceImpl();
+//        CompanyService companyService=new CompanyServiceImpl();
         //判断页面是否传值 默认page=1，size=5
         int page=1;
         int size=5;
@@ -73,6 +78,7 @@ public class CompanyServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/pages/store/Company/list.jsp").forward(request,response);
         System.out.println("这里是跳转list页面哦~【src/main/webapp/WEB-INF/pages/store/Company/list.jsp】");
     }
+
     private void toAdd(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/pages/store/Company/add.jsp").forward(request,response);
         System.out.println("这里是添加数据页面哦~【src/main/webapp/WEB-INF/pages/store/Company/add.jsp】");
@@ -81,8 +87,41 @@ public class CompanyServlet extends HttpServlet {
         //将数据获取到，封装成一个对象
         Company company= BeanUtil.fillBean(request,Company.class,"yyy-MM-dd");
         //调用业务层接口save
-        CompanyService companyService=new CompanyServiceImpl();
+//        CompanyService companyService=new CompanyServiceImpl();
         companyService.save(company);
+        //跳转回到列表页面
+        //list(request,response);
+        response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
+    }
+
+    private void toEdit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //查询要修改的数据findById
+        String id =request.getParameter("id");
+//        CompanyService companyService=new CompanyServiceImpl();
+        Company company=companyService.findById(id);
+        //将数据加载到指定页面，供页面获取
+        request.setAttribute("company",company);
+        //跳转页面
+        request.getRequestDispatcher("/WEB-INF/pages/store/Company/update.jsp").forward(request,response);
+        System.out.println("这里是修改数据页面哦~【src/main/webapp/WEB-INF/pages/store/Company/update.jsp】");
+    }
+
+    private void edit(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //将数据获取到，封装成一个对象
+        Company company= BeanUtil.fillBean(request,Company.class,"yyy-MM-dd");
+        //调用业务层接口edit
+//        CompanyService companyService=new CompanyServiceImpl();
+        companyService.update(company);
+        //跳转回到列表页面
+        //list(request,response);
+        response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
+    }
+    private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //将数据获取到，封装成一个对象
+        Company company= BeanUtil.fillBean(request,Company.class);
+        //调用业务层接口delete
+//        CompanyService companyService=new CompanyServiceImpl();
+        companyService.delete(company);
         //跳转回到列表页面
         //list(request,response);
         response.sendRedirect(request.getContextPath()+"/store/company?operation=list");

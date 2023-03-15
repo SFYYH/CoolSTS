@@ -1,7 +1,6 @@
 # Cool刷题项目制作
 
 
-
 ## 系统架构
 
 ### 后台系统【技术框架】
@@ -1241,12 +1240,15 @@ public class CompanyServlet extends HttpServlet {
             this.toAdd(request,response);
         }else if("save".equals(operation)){
             this.save(request,response);
-        }else if("list".equals(operation)){
-
-        }else if("list".equals(operation)){
-
+        }else if("toEdit".equals(operation)){
+            this.toEdit(request,response);
+        }else if("edit".equals(operation)){
+            this.edit(request,response);
+        }else if("delete".equals(operation)){
+            this.delete(request,response);
         }
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -1275,6 +1277,7 @@ public class CompanyServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/pages/store/Company/list.jsp").forward(request,response);
         System.out.println("这里是跳转list页面哦~【src/main/webapp/WEB-INF/pages/store/Company/list.jsp】");
     }
+
     private void toAdd(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/pages/store/Company/add.jsp").forward(request,response);
         System.out.println("这里是添加数据页面哦~【src/main/webapp/WEB-INF/pages/store/Company/add.jsp】");
@@ -1289,8 +1292,40 @@ public class CompanyServlet extends HttpServlet {
         //list(request,response);
         response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
     }
-}
 
+    private void toEdit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //查询要修改的数据findById
+        String id =request.getParameter("id");
+        CompanyService companyService=new CompanyServiceImpl();
+        Company company=companyService.findById(id);
+        //将数据加载到指定页面，供页面获取
+        request.setAttribute("company",company);
+        //跳转页面
+        request.getRequestDispatcher("/WEB-INF/pages/store/Company/update.jsp").forward(request,response);
+        System.out.println("这里是修改数据页面哦~【src/main/webapp/WEB-INF/pages/store/Company/update.jsp】");
+    }
+
+    private void edit(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //将数据获取到，封装成一个对象
+        Company company= BeanUtil.fillBean(request,Company.class,"yyy-MM-dd");
+        //调用业务层接口edit
+        CompanyService companyService=new CompanyServiceImpl();
+        companyService.update(company);
+        //跳转回到列表页面
+        //list(request,response);
+        response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
+    }
+    private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //将数据获取到，封装成一个对象
+        Company company= BeanUtil.fillBean(request,Company.class);
+        //调用业务层接口delete
+        CompanyService companyService=new CompanyServiceImpl();
+        companyService.delete(company);
+        //跳转回到列表页面
+        //list(request,response);
+        response.sendRedirect(request.getContextPath()+"/store/company?operation=list");
+    }
+}
 ```
 
 > 关于pages页面：我们需要把`src/main/webapp/pages`里的`common`和`store`文件夹复制到WEB-INF，为了安全起见
@@ -1556,5 +1591,173 @@ public class CompanyServlet extends HttpServlet {
 </script>
 
 </html>
+```
+
+#### 修改功能与删除功能
+
+>  通过对`src/main/webapp/WEB-INF/pages/store/Company/list.jsp`里的编辑部分观察得知我们需要做出`toEdit跳转页面+携带的id`
+>
+> ```html
+> <td class="text-center">
+>     <button type="button" class="btn bg-olive btn-xs" onclick='location.href="${ctx}/store/company?operation=toEdit&id=${item.id}"'>编辑</button>
+> </td>
+> ```
+
+##### src/main/webapp/WEB-INF/pages/store/Company/update.jsp
+
+```java
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ include file="../../base.jsp"%>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>CoolSTS管理系统</title>
+    <meta name="description" content="AdminLTE2定制版">
+    <meta name="keywords" content="AdminLTE2定制版">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 页面meta /-->
+</head>
+<body>
+<div id="frameContent" class="content-wrapper" style="margin-left:0px;">
+    <!-- 内容头部 -->
+    <section class="content-header">
+        <h1>
+            企业管理
+            <small>编辑企业信息</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="all-admin-index.html"><i class="fa fa-dashboard"></i> 首页</a></li>
+            <li><a href="all-order-manage-list.html">企业管理</a></li>
+            <li class="active">编辑企业信息</li>
+        </ol>
+    </section>
+    <!-- 内容头部 /-->
+
+    <!-- 正文区域 -->
+    <section class="content">
+
+        <!--订单信息-->
+        <div class="panel panel-default">
+            <div class="panel-heading">企业信息</div>
+            <form id="editForm" action="${ctx}/store/company?operation=edit" method="post">
+                <input type="hidden" name="id" value="${company.id}">
+                <div class="row data-type" style="margin: 0px">
+                    <div class="col-md-2 title">企业名称</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="企业名称" name="name" value="${company.name}">
+                    </div>
+
+                    <div class="col-md-2 title">营业执照</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="营业执照" name="licenseId" value="${company.licenseId}">
+                    </div>
+
+                    <div class="col-md-2 title">所在城市</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="所在地" name="city" value="${company.city}">
+                    </div>
+
+                    <div class="col-md-2 title">企业地址</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="企业地址" name="address" value="${company.address}">
+                    </div>
+
+                    <div class="col-md-2 title">法人代表</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="法人代表" name="representative" value="${company.representative}">
+                    </div>
+
+                    <div class="col-md-2 title">联系电话</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="联系电话" name="phone" value="${company.phone}">
+                    </div>
+
+                    <div class="col-md-2 title">公司规模</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="公司规模" name="companySize" value="${company.companySize}">
+                    </div>
+
+                    <div class="col-md-2 title">所属行业</div>
+                    <div class="col-md-4 data">
+                        <input type="text" class="form-control" placeholder="所属行业" name="industry" value="${company.industry}">
+                    </div>
+                    <div class="col-md-2 title">状态</div>
+                    <div class="col-md-4 data">
+                        <select class="form-control select2" name="state" style="width: 100%;">
+                            <option value="0" ${company.state==0 ? 'selected':''}>未审核</option>
+                            <option value="1" ${company.state==1 ? 'selected':''}>已审核</option>
+                        </select>
+                        <input type="text" class="form-control" placeholder="状态" name="state" value="${company.state}">
+                    </div>
+
+                    <div class="col-md-2 title rowHeight2x">备注</div>
+                    <div class="col-md-4 data rowHeight2x">
+                        <textarea class="form-control" rows="3" name="remarks">${company.remarks}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--订单信息/-->
+
+        <!--工具栏-->
+        <div class="box-tools text-center">
+            <button type="button" onclick='document.getElementById("editForm").submit()' class="btn bg-maroon">保存</button>
+            <button type="button" class="btn bg-default" onclick="history.back(-1);">返回</button>
+        </div>
+        <!--工具栏/-->
+
+    </section>
+    <!-- 正文区域 /-->
+
+</div>
+<!-- 内容区域 /-->
+</body>
+
+</html>
+```
+
+#### 代码优化
+
+> 因为每次调用增删改查操作都需要重新创建一个对象，所以我们可以简化成一个BaseServlet抽取
+>
+> ```java
+> public class CompanyServlet extends BaseServlet 
+> ```
+>
+> 则所有的以下语句都可以注释掉
+>
+> ```java
+> CompanyService companyService=new CompanyServiceImpl();
+> ```
+
+##### com/colincora/web/controller/BaseServlet.java
+
+```java
+package com.colincora.web.controller;
+
+import com.colincora.service.store.CompanyService;
+import com.colincora.service.store.impl.CompanyServiceImpl;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+
+/**
+ * @author colincora
+ * @date 2023/3/15 9:27
+ */
+public class BaseServlet extends HttpServlet {
+    protected CompanyService companyService;
+
+    @Override
+    public void init() throws ServletException {
+        companyService=new CompanyServiceImpl();
+    }
+}
 ```
 

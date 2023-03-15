@@ -1,2 +1,3 @@
 com\colincora\utils\BeanUtil.class
 com\colincora\web\controller\company\CompanyServlet.class
+com\colincora\web\controller\BaseServlet.class
